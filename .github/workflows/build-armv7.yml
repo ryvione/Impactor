@@ -1,0 +1,33 @@
+name: Build 32-bit ARM Binary
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: armv7-unknown-linux-gnueabihf
+
+      - name: Install Cross-Compilation Linker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf libssl-dev pkg-config
+
+      - name: Compile plumesign for Pi 2
+        env:
+          PKG_CONFIG_ALLOW_CROSS: 1
+        run: |
+          cargo build --release -p plumesign --target armv7-unknown-linux-gnueabihf
+
+      - name: Upload Binary as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plumesign-armv7
+          path: target/armv7-unknown-linux-gnueabihf/release/plumesign
